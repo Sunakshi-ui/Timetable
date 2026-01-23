@@ -84,16 +84,20 @@ def generate_timetable(req: TimetableRequest):
                 slot_counts[key] = slot_counts.get(key, 0) + 1
                 break
 
-    # group timetable by day
-    timetable = {}   # start with an empty dictionary
+    
+    # initialize timetables for each batch
+    batch_timetables = {
+        batch: {day: {slot: [] for slot in req.slots} for day in req.days}
+        for batch in {cl.batch for cl in req.course_loads}
+    }
 
-    for day in req.days:          
-        timetable[day] = {}           
-        for slot in req.slots:        
-            timetable[day][slot] = [] # initialize with an empty list
-
+    # fill timetables based on assignments
     for node, key in assignments.items():
         day, slot = key.split("_")
-        timetable[day][slot].append(node)
+    # find the batch for this node
+        batch = G.nodes[node]["batch"]
+        batch_timetables[batch][day][slot].append(node)
 
-    return {"timetable": timetable}
+
+
+    return {"timetable": batch_timetables }

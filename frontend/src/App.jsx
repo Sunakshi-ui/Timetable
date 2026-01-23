@@ -3,7 +3,7 @@ import api from "./api";
 
 function App() {
   const [courseLoads, setCourseLoads] = useState([
-    { batch: "", course: "", prof: "", count: 0 }
+    { batch: "", course: "", prof: "", credit: 0 }
   ]);
   const [days, setDays] = useState(["Mon", "Tue", "Wed", "Thu", "Fri"]);
   const [slots, setSlots] = useState(["9AM", "10AM", "11AM", "1PM", "2PM"]);
@@ -19,7 +19,7 @@ function App() {
 
   // Add another course row
   const addCourseRow = () => {
-    setCourseLoads([...courseLoads, { batch: "", course: "", prof: "", count: 0 }]);
+    setCourseLoads([...courseLoads, { batch: "", course: "", prof: "", credit: 0 }]);
   };
 
   const generateTimetable = async () => {
@@ -64,9 +64,9 @@ function App() {
           />
           <input
             type="number"
-            placeholder="Count"
-            value={cl.count}
-            onChange={(e) => handleCourseChange(index, "count", e.target.value)}
+            placeholder="credit"
+            value={cl.credit}
+            onChange={(e) => handleCourseChange(index, "credit", e.target.value)}
           />
         </div>
       ))}
@@ -96,36 +96,36 @@ function App() {
       <button onClick={generateTimetable}>Generate Timetable</button>
 
       {/* Output */}
-      {timetable && (
-        <div className="timetable">
-          <h2>Weekly Timetable</h2>
-          <table border="1" cellPadding="8">
-            
-            <thead>
-              <tr>
-                <th>Day</th>
-                {Object.keys(timetable["Mon"]).map((slot) => (
-                  <th key={slot}>{slot}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {Object.keys(timetable).map((day) => (
-                <tr key={day}>
-                  <td>{day}</td>
-                  {Object.keys(timetable[day]).map((slot) => (
-                    <td key={slot}>
-                      {timetable[day][slot].length > 0
-                        ? timetable[day][slot].join(", ")
-                        : "-"}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {timetable && Object.keys(timetable).map((batch) => (
+  <div className="timetable" key={batch}>
+    <h2>Weekly Timetable - {batch}</h2>
+    <table border="1" cellPadding="8">
+      <thead>
+        <tr>
+          <th>Day</th>
+          {Object.keys(timetable[batch]["Mon"]).map((slot) => (
+            <th key={slot}>{slot}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {Object.keys(timetable[batch]).map((day) => (
+          <tr key={day}>
+            <td>{day}</td>
+            {Object.keys(timetable[batch][day]).map((slot) => (
+              <td key={slot}>
+                {timetable[batch][day][slot].length > 0
+                  ? timetable[batch][day][slot].join(", ")
+                  : "-"}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+))}
+
 
     </div>
   );
