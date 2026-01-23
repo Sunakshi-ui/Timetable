@@ -100,6 +100,7 @@ function App() {
         <div className="timetable">
           <h2>Weekly Timetable</h2>
           <table border="1" cellPadding="8">
+            
             <thead>
               <tr>
                 <th>Day</th>

@@ -20,7 +20,7 @@ class CourseLoad(BaseModel):
     batch: str
     course: str
     prof: str
-    count: int
+    credit: int
 
 class TimetableRequest(BaseModel):
     course_loads: list[CourseLoad]
@@ -31,9 +31,11 @@ class TimetableRequest(BaseModel):
 # Build conflict graph
 def build_conflict_graph(sessions):
     G = nx.Graph()
+
     # add nodes
     for node_id, batch, course, prof in sessions:
         G.add_node(node_id, batch=batch, course=course, prof=prof)
+        
     # add edges for conflicts
     for i in range(len(sessions)):
         for j in range(i+1, len(sessions)):
@@ -46,10 +48,10 @@ def build_conflict_graph(sessions):
 
 @app.post("/generate_timetable")
 def generate_timetable(req: TimetableRequest):
-    # expand into sessions (each lecture = one node)
+    # build nodes (sessions)
     sessions = []
-    for cl in req.course_loads:
-        for i in range(cl.count):
+    for cl in req.course_loads: #for each different course 
+        for i in range(cl.credit): #for each lecture(of same course), create a session
             node_id = f"{cl.course}_{cl.batch}_L{i+1}"
             sessions.append((node_id, cl.batch, cl.course, cl.prof))
 
@@ -57,25 +59,39 @@ def generate_timetable(req: TimetableRequest):
     G = build_conflict_graph(sessions)
 
     # weekly slots
-    week_slots = [(d, s) for d in req.days for s in req.slots]
+    week_slots = []
+    for d in req.days:
+        for s in req.slots:
+            week_slots.append((d, s))
 
     # greedy assignment
-    assignments = {}
-    slot_counts = {}
+    assignments = {} # which slot each node gets
+    slot_counts = {} # to track number of sessions assigned per slot (since we have limited rooms)
+
     for node in G.nodes():
-        neighbor_slots = set()
+        neighbor_slots = set() # slots assigned to neighbors, cant be assigned to this node
         for neigh in G.neighbors(node):
-            if neigh in assignments:
+            if neigh in assignments: # check if neighbor is already assigned
                 neighbor_slots.add(assignments[neigh])
+                #here assignments[neigh] = key is assigned later
+
         for day, slot in week_slots:
             key = f"{day}_{slot}"
+
             if key not in neighbor_slots and slot_counts.get(key, 0) < req.rooms_available:
+            #if theres no conflict       and rooms are available in that slot
                 assignments[node] = key
                 slot_counts[key] = slot_counts.get(key, 0) + 1
                 break
 
     # group timetable by day
-    timetable = {day: {slot: [] for slot in req.slots} for day in req.days}
+    timetable = {}   # start with an empty dictionary
+
+    for day in req.days:          
+        timetable[day] = {}           
+        for slot in req.slots:        
+            timetable[day][slot] = [] # initialize with an empty list
+
     for node, key in assignments.items():
         day, slot = key.split("_")
         timetable[day][slot].append(node)
