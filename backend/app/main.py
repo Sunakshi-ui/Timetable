@@ -98,6 +98,4 @@ def generate_timetable(req: TimetableRequest):
         batch = G.nodes[node]["batch"]
         batch_timetables[batch][day][slot].append(node)
 
-
-
     return {"timetable": batch_timetables }

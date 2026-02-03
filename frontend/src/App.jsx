@@ -7,7 +7,7 @@ function App() {
   ]);
   const [days, setDays] = useState(["Mon", "Tue", "Wed", "Thu", "Fri"]);
   const [slots, setSlots] = useState(["9AM", "10AM", "11AM", "1PM", "2PM"]);
-  const [roomsAvailable, setRoomsAvailable] = useState(2);
+  const [roomsAvailable, setRoomsAvailable] = useState(3);
   const [timetable, setTimetable] = useState(null);
 
   // Handle course load input
